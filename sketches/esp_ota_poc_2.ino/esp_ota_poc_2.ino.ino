@@ -4,11 +4,15 @@
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
+#include <ESP8266WebServer.h>
 
-#ifndef APSSID
-#define APSSID "TriCorp_HQ"
-#define APPSK  "25C6FS7EDY924"
+#ifndef ESPAPSSID
+#define ESPAPSSID "Robot"
+#define ESPAPPSK  "thereisnospoon"
 #endif
+
+char accessPointSSID[30] = "TriCorp_HQ";
+char accessPointKey[30] = "25C6FS7EDY924";
 
 int ledState = LOW;
 unsigned long previousMillis = 0;
@@ -18,19 +22,62 @@ const char fingerprint[] PROGMEM = "38edd6abfe187fb580b6e573825cf62250604053";
 const String currentBinaryLocation = "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/Blink.ino.bin";
 String latestBinaryLocation = "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/Blink.ino.bin";
 WiFiClientSecure client;
+ESP8266WebServer server(80);
+
+const char *page = 
+  "<h1>You are connected to the robot</h1>"
+  "<form method=\"post\" enctype=\"application/x-www-form-urlencoded\" action=\"/postform/\">"
+    "<input type=\"text\" name=\"SSID\" >"
+    "<input type=\"text\" name=\"Key\" >"
+    "<input type=\"submit\" value=\"Submit\">"
+  "</form>";
+
+/* Go to http://192.168.4.1 in a web browser
+   connected to this access point to see it.
+*/
+void handleRoot() {
+  server.send(200, "text/html", page);
+}
+
+void handleForm() {
+  if (server.method() != HTTP_POST) {
+    server.send(405, "text/plain", "Method Not Allowed");
+  } else {
+    WiFi.disconnect();
+    server.arg(0).toCharArray(accessPointSSID, 30);
+    server.arg(1).toCharArray(accessPointKey, 30);
+    WiFiMulti.addAP(accessPointSSID, accessPointKey);
+
+    String message = "POST form was:\n";
+    for (uint8_t i = 0; i < server.args(); i++) {
+      message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+    }
+    server.send(200, "text/plain", message);
+  }
+}
 
 void setup() {
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
   WiFi.mode(WIFI_STA);
-  WiFiMulti.addAP(APSSID, APPSK);
-
-  // Set the fingerprint to connect the server.
+  
+  // WiFiMulti.addAP(accessPointSSID, accessPointKey);
+  
+  WiFi.softAP(ESPAPSSID);
+  IPAddress myIP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(myIP);
+  server.on("/", handleRoot);
+  server.on("/postform/", handleForm);
+  server.begin();
+  
+  // Set the SSL fingerprint for HTTPS S3 file downloads
   client.setFingerprint(fingerprint);
 }
 
 
 void loop() {
+  server.handleClient();
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval && WiFiMulti.run() == WL_CONNECTED) {
     Serial.println("Time elapsed");
