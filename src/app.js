@@ -59,6 +59,7 @@ app.post('/compile/:robotId', (req,res) => {
             s3.upload(params, function(err, data) {
                 if (err) { throw err; }
                 console.log(`File uploaded successfully. ${data.Location}`);
+                res.json({message: `Binary saved to ${data.Location}`});
             });
         });
     }); 
