@@ -7,11 +7,12 @@ Install Compilation stuff
 	`arduino-cli config init` => /home/ubuntu/.arduino15/arduino-cli.yaml
 - Install additional boards:
 	editing the yaml: `sudo nano /home/ubuntu/.arduino15/arduino-cli.yaml`
-```
+````
 board_manager:
   additional_urls:
     - http://arduino.esp8266.com/stable/package_esp8266com_index.json
-```
+````
+
 	update the index: `arduino-cli core update-index`
 	then install the platform: `arduino-cli core install esp8266:esp8266`
 
@@ -28,6 +29,12 @@ board_manager:
 Create express API to handle POST call to compile
 - install git
 - install node
+- install npm
+- Develop the server app
+	https://stackoverflow.com/questions/20643470/execute-a-command-line-binary-with-node-js
+- install npm packages
+- run the server app
+- test with postman
 
 
 
