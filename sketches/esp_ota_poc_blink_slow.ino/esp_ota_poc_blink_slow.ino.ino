@@ -6,10 +6,11 @@
 #include <ESP8266httpUpdate.h>
 #include <ESP8266WebServer.h>
 
-#ifndef ESPAPSSID
-#define ESPAPSSID "Robot"
-#endif
-
+const char robotId[] PROGMEM = "robot001";
+const char binariesLocation[] PROGMEM = "https://esp-ota-binaries.s3-us-east-2.amazonaws.com/binaries";
+const char fingerprint[] PROGMEM = "38edd6abfe187fb580b6e573825cf62250604053";
+char *currentBinary = "esp_ota_poc_blink_slow.ino.ino.bin";
+char *latestBinary = "esp_ota_poc_blink_slow.ino.ino.bin";
 char accessPointSSID[30] = "";
 char accessPointKey[30] = "";
 
@@ -18,14 +19,11 @@ unsigned long previousMillis = 0;
 const long interval = 5000;
 
 ESP8266WiFiMulti WiFiMulti;
-const char fingerprint[] PROGMEM = "38edd6abfe187fb580b6e573825cf62250604053";
-String currentBinaryLocation = "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/esp_ota_poc_blink_slow.ino.ino.bin";
-String latestBinaryLocation = "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/esp_ota_poc_blink_slow.ino.ino.bin";
 WiFiClientSecure client;
 ESP8266WebServer server(80);
 
 const char *page = 
-  "<h1>You are connected to the robot</h1>"
+  "<h1>You are connected to robot001</h1>"
   "<form method=\"post\" enctype=\"application/x-www-form-urlencoded\" action=\"/postform/\">"
     "<input type=\"text\" name=\"SSID\" >"
     "<input type=\"text\" name=\"Key\" >"
@@ -65,7 +63,7 @@ void setup() {
     WiFiMulti.addAP(accessPointSSID, accessPointKey);  
   }
   
-  WiFi.softAP(ESPAPSSID);
+  WiFi.softAP(robotId);
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(myIP);
@@ -77,9 +75,7 @@ void setup() {
   client.setFingerprint(fingerprint);
 }
 
-
 void loop() {
-  
   server.handleClient();
 
   digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
@@ -94,13 +90,16 @@ void loop() {
     Serial.println("Time elapsed");
     
     HTTPClient http;
-    if (http.begin(client, "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/latest.txt")) {
+    char latestFileLocation[50];
+    sprintf(latestFileLocation, "%b/%r/latest.txt", binariesLocation, robotId);
+    if (http.begin(client, latestFileLocation)) {
       int httpCode = http.GET();
       if (httpCode > 0) {
         // file found at server
         if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
-          latestBinaryLocation = http.getString().c_str();
-          Serial.println("Found latest version: " + latestBinaryLocation);
+          
+          latestBinary = http.getString().c_str();
+          Serial.println("Found latest version: " + latestBinary);
         }
       } else {
         Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
@@ -109,9 +108,11 @@ void loop() {
       Serial.printf("[HTTP} Unable to connect\n");
     }
     
-    if (currentBinaryLocation != latestBinaryLocation) {
+    if (currentBinary != latestBinary) {
       Serial.println("Found new binary");
-      currentBinaryLocation = latestBinaryLocation;
+      currentBinary = latestBinary;
+      char latestBinaryLocation[70];
+      sprintf(latestFileLocation, "%b/%r/%l", binariesLocation, robotId, latestBinary);
       t_httpUpdate_return ret = ESPhttpUpdate.update(client, latestBinaryLocation);
       switch (ret) {
         case HTTP_UPDATE_FAILED:
