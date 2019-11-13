@@ -37,6 +37,13 @@ app.post('/compile/:robotId', (req,res) => {
         console.log("The file was saved!");
         // arduin0-cli compile --fqbn esp8266:esp8266:nodemcuv2 /builds/${robotId}/Sketch.ino`
         const compile = spawn( '/home/ubuntu/bin/arduino-cli', [ 'compile', '--fqbn', 'esp8266:esp8266:nodemcuv2', path ] );
+        compile.stdout.on( 'data', data => {
+            console.log( `stdout: ${data}` );
+        } );
+        
+        compile.stderr.on( 'data', data => {
+            console.log( `stderr: ${data}` );
+        } );
         compile.on('error', err => {
             console.log(`Error thrown: ${err}`);
         });
