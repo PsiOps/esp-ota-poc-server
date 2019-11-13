@@ -37,6 +37,9 @@ app.post('/compile/:robotId', (req,res) => {
         console.log("The file was saved!");
         // arduin0-cli compile --fqbn esp8266:esp8266:nodemcuv2 /builds/${robotId}/Sketch.ino`
         const compile = spawn( 'arduino-cli', [ 'compile', '--fqbn', 'esp8266:esp8266:nodemcuv2', path ] );
+        compile.on('error', err => {
+            console.log(`Error thrown: ${err}`);
+        });
         compile.on('close', code => {
             console.log( `child process exited with code ${code}`);
             const fileName = `/builds/${robotId}/Sketch.ino.esp8266.esp8266.nodemcuv2.bin`;
