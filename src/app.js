@@ -32,7 +32,7 @@ app.post('/compile/:robotId', (req,res) => {
     var dir  = `/builds/${robotId}`;
     var path = `${dir}/Sketch.ino`;
     !fs.existsSync(dir) && fs.mkdirSync(dir);
-    fs.appendFile(path, sketch, function(err) {
+    fs.writeFile(path, sketch, function(err) {
         if(err) {return console.log(err);}
         console.log("The file was saved!");
         // arduin0-cli compile --fqbn esp8266:esp8266:nodemcuv2 /builds/${robotId}/Sketch.ino`
