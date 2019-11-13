@@ -29,7 +29,9 @@ app.post('/compile/:robotId', (req,res) => {
     var robotId = req.params.robotId;
     console.log(`Compiling for robot with id ${robotId}`);
     var sketch = req.body.sketch;
-    var path = `/builds/${robotId}/Sketch.ino`;
+    var dir  = `/builds/${robotId}`;
+    var path = `${dir}/Sketch.ino`;
+    !fs.existsSync(dir) && fs.mkdirSync(dir);
     fs.appendFile(path, sketch, function(err) {
         if(err) {return console.log(err);}
         console.log("The file was saved!");
