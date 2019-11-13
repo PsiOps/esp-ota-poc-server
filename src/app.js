@@ -13,7 +13,8 @@ app.get("/test", (req, res, next) => {
  res.json(["Tony","Lisa","Michael","Ginger","Food"]);
 });
 
-app.post('/handle', (req,res) => {
+app.post('/compile/:robotId', (req,res) => {
+ console.log(`Compiling for robot with id ${req.params.robotId}`);
  var query1=req.body.var1;
  var query2=req.body.var2;
 });
