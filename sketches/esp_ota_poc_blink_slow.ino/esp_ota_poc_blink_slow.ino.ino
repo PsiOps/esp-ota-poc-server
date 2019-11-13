@@ -19,8 +19,8 @@ const long interval = 5000;
 
 ESP8266WiFiMulti WiFiMulti;
 const char fingerprint[] PROGMEM = "38edd6abfe187fb580b6e573825cf62250604053";
-const String currentBinaryLocation = "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/Blink.ino.bin";
-String latestBinaryLocation = "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/Blink.ino.bin";
+String currentBinaryLocation = "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/esp_ota_poc_blink_slow.ino.ino.bin";
+String latestBinaryLocation = "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/esp_ota_poc_blink_slow.ino.ino.bin";
 WiFiClientSecure client;
 ESP8266WebServer server(80);
 
@@ -111,6 +111,7 @@ void loop() {
     
     if (currentBinaryLocation != latestBinaryLocation) {
       Serial.println("Found new binary");
+      currentBinaryLocation = latestBinaryLocation;
       t_httpUpdate_return ret = ESPhttpUpdate.update(client, latestBinaryLocation);
       switch (ret) {
         case HTTP_UPDATE_FAILED:

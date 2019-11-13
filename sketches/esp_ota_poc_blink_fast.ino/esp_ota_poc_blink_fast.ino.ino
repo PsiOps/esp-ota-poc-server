@@ -19,8 +19,8 @@ const long interval = 5000;
 
 ESP8266WiFiMulti WiFiMulti;
 const char fingerprint[] PROGMEM = "38edd6abfe187fb580b6e573825cf62250604053";
-const String currentBinaryLocation = "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/Blink.ino.bin";
-String latestBinaryLocation = "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/Blink.ino.bin";
+String currentBinaryLocation = "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/esp_ota_poc_blink_fast.ino.ino.bin";
+String latestBinaryLocation = "https://esp-ota-poc.s3-eu-west-1.amazonaws.com/binaries/MACADDRESS/esp_ota_poc_blink_fast.ino.ino.bin";
 WiFiClientSecure client;
 ESP8266WebServer server(80);
 
@@ -82,12 +82,10 @@ void loop() {
   
   server.handleClient();
 
-  digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
-  // but actually the LED is on; this is because
-  // it is active low on the ESP-01)
-  delay(1000);                      // Wait for a second
-  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
-  delay(2000);   
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(500);
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(500);   
   
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval && WiFiMulti.run() == WL_CONNECTED) {
@@ -111,6 +109,7 @@ void loop() {
     
     if (currentBinaryLocation != latestBinaryLocation) {
       Serial.println("Found new binary");
+      currentBinaryLocation = latestBinaryLocation;
       t_httpUpdate_return ret = ESPhttpUpdate.update(client, latestBinaryLocation);
       switch (ret) {
         case HTTP_UPDATE_FAILED:
