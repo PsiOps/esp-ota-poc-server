@@ -30,7 +30,7 @@ app.post('/compile/:robotId', (req,res) => {
     console.log(`Compiling for robot with id ${robotId}`);
     var sketch = req.body.sketch;
     var path = `/builds/${robotId}/Sketch.ino`;
-    fs.writeFile(path, sketch, function(err) {
+    fs.appendFile(path, sketch, function(err) {
         if(err) {return console.log(err);}
         console.log("The file was saved!");
         // arduin0-cli compile --fqbn esp8266:esp8266:nodemcuv2 /builds/${robotId}/Sketch.ino`
