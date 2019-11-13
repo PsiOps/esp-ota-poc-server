@@ -53,7 +53,7 @@ app.post('/compile/:robotId', (req,res) => {
             const fileContent = fs.readFileSync(fileName);
             const params = {
                 Bucket: bucketName,
-                Key: `${robotId}/binary.bin`, // File name you want to save as in S3
+                Key: `binaries/${robotId}/binary.bin`, // File name you want to save as in S3
                 Body: fileContent,
                 ACL: 'public-read'
             };
