@@ -35,12 +35,11 @@ app.post('/compile/:robotId', (req,res) => {
     fs.writeFile(path, sketch, function(err) {
         if(err) {return console.log(err);}
         console.log("The file was saved!");
-        // arduin0-cli compile --fqbn esp8266:esp8266:nodemcuv2 /builds/${robotId}/Sketch.ino`
+        // arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 /builds/${robotId}/Sketch.ino`
         const compile = spawn( '/home/ubuntu/bin/arduino-cli', [ 'compile', '--fqbn', 'esp8266:esp8266:nodemcuv2', path ] );
         compile.stdout.on( 'data', data => {
             console.log( `stdout: ${data}` );
         } );
-        
         compile.stderr.on( 'data', data => {
             console.log( `stderr: ${data}` );
         } );
@@ -49,18 +48,34 @@ app.post('/compile/:robotId', (req,res) => {
         });
         compile.on('close', code => {
             console.log( `child process exited with code ${code}`);
-            const fileName = `/builds/${robotId}/Sketch.ino.esp8266.esp8266.nodemcuv2.bin`;
-            const fileContent = fs.readFileSync(fileName);
+            if(code != 1) { 
+                res.json({message: "Compilation failed"});
+                return;
+            }
+            const localFileName = `/builds/${robotId}/Sketch.ino.esp8266.esp8266.nodemcuv2.bin`;
+            const fileContent = fs.readFileSync(localFileName);
+            const remoteFileName = `${robotId}-${new Date().getTime()}.bin`;
             const params = {
                 Bucket: bucketName,
-                Key: `binaries/${robotId}/binary.bin`, // File name you want to save as in S3
+                Key: `binaries/${robotId}/${remoteFileName}`,
                 Body: fileContent,
                 ACL: 'public-read'
             };
             s3.upload(params, function(err, data) {
                 if (err) { throw err; }
-                console.log(`File uploaded successfully. ${data.Location}`);
-                res.json({message: `Binary saved to ${data.Location}`});
+                console.log(`Binary file uploaded successfully. ${data.Location}`);
+                const latestFileContent = new Buffer(remoteFileName);
+                const latestParams  = {
+                    Bucket: bucketName,
+                    Key: `binaries/${robotId}/latest.txt`,
+                    Body: latestFileContent,
+                    ACL: 'public-read'    
+                }
+                s3.upload(latestParams, function(latestErr, latestData){
+                    if (latestErr) { throw latestErr; }
+                    console.log(`Latest txt file uploaded successfully. ${latestData.Location}`);
+                    res.json({message: `Binary saved to ${latestData.Location}`});
+                });
             });
         });
     }); 
