@@ -29,6 +29,7 @@ app.post('/compile/:robotId', (req,res) => {
     var robotId = req.params.robotId;
     console.log(`Compiling for robot with id ${robotId}`);
     var sketch = req.body.sketch;
+    var fileName = req.body.fileName;
     var dir  = `/builds/${robotId}`;
     var path = `${dir}/Sketch.ino`;
     !fs.existsSync(dir) && fs.mkdirSync(dir);
@@ -54,17 +55,16 @@ app.post('/compile/:robotId', (req,res) => {
             }
             const localFileName = `/builds/${robotId}/Sketch.ino.esp8266.esp8266.nodemcuv2.bin`;
             const fileContent = fs.readFileSync(localFileName);
-            const remoteFileName = `${robotId}-${new Date().getTime()}.bin`;
             const params = {
                 Bucket: bucketName,
-                Key: `binaries/${robotId}/${remoteFileName}`,
+                Key: `binaries/${robotId}/${fileName}`,
                 Body: fileContent,
                 ACL: 'public-read'
             };
             s3.upload(params, function(err, data) {
                 if (err) { throw err; }
                 console.log(`Binary file uploaded successfully. ${data.Location}`);
-                const latestFileContent = new Buffer(remoteFileName);
+                const latestFileContent = new Buffer(fileName);
                 const latestParams  = {
                     Bucket: bucketName,
                     Key: `binaries/${robotId}/latest.txt`,
