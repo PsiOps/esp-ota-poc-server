@@ -49,7 +49,7 @@ app.post('/compile/:robotId', (req,res) => {
         });
         compile.on('close', code => {
             console.log( `child process exited with code ${code}`);
-            if(code != 1) { 
+            if(code != 0) { 
                 res.json({message: "Compilation failed"});
                 return;
             }
