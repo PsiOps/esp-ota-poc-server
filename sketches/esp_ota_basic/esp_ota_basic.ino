@@ -12,59 +12,42 @@ const char fingerprint[] PROGMEM = "2bb36b4815c37e5fd6ae05ffd8d8d5897a4a4834";
 
 char accessPointSSID[30] = "";
 char accessPointKey[30] = "";
-String currentBinary = "test_ota1.bin";
-String latestBinary = "test_ota1.bin";
+String currentBinary = "test_ota3.bin";
+String latestBinary = "test_ota3.bin";
 
 int ledState = LOW;
 unsigned long previousMillis = 0;
-const long interval = 5000;
+const long interval = 10000;
+
+const long blinkWaitInterval = 500;
 
 ESP8266WiFiMulti WiFiMulti;
-WiFiClientSecure client;
 ESP8266WebServer server(80);
-
-const char *page = 
-  "<h1>You are connected to robot001</h1>"
-  "<form method='post' enctype='application/x-www-form-urlencoded' action='postform/'>"
-    "<input type='text' name='SSID' >"
-    "<input type='text' name='Key' >"
-    "<input type='submit' value='Submit'>"
-  "</form>";
-
-/* Go to http://192.168.4.1 in a web browser
-   connected to this access point to see it.
-*/
-void handleRoot() {
-  server.send(200, "text/html", page);
-}
-
-void handleForm() {
-  if (server.method() != HTTP_POST) {
-    server.send(405, "text/plain", "Method Not Allowed");
-  } else {
-    WiFi.disconnect();
-    server.arg(0).toCharArray(accessPointSSID, 30);
-    server.arg(1).toCharArray(accessPointKey, 30);
-    WiFiMulti.addAP(accessPointSSID, accessPointKey);
-
-    String message = "Connected!";
-    server.send(200, "text/plain", message);
-  }
-}
+WiFiClientSecure client;
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("Setting up");
+
   pinMode(LED_BUILTIN, OUTPUT);
+
+  setupWifiStationMode();
+  setupWifiAccessPointMode();
+  setupWifiClient();
+  Serial.println("Finished setting up");
+}
+
+void setupWifiStationMode(){
   WiFi.mode(WIFI_STA);
 
-  Serial.println("Setting up");
-  
   if(accessPointSSID[0] != '\0') {
     Serial.printf("Adding Access Point with SSID: ");
     Serial.println(accessPointSSID);
     WiFiMulti.addAP(accessPointSSID, accessPointKey);  
   }
-  
+}
+
+void setupWifiAccessPointMode(){
   WiFi.softAP(robotId);
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
@@ -72,20 +55,24 @@ void setup() {
   server.on("/", handleRoot);
   server.on("/postform/", handleForm);
   server.begin();
+}
 
-  // Set the SSL fingerprint for HTTPS S3 file downloads
-  client.setFingerprint(fingerprint);
-  Serial.println("Finished setting up");
+void setupWifiClient(){
+  client.setFingerprint(fingerprint); // Set the SSL fingerprint for HTTPS S3 file downloads
 }
 
 void loop() {
   server.handleClient();
 
   digitalWrite(LED_BUILTIN, LOW);
-  delay(500);                   
+  delay(blinkWaitInterval);                   
   digitalWrite(LED_BUILTIN, HIGH);
-  delay(500);   
+  delay(blinkWaitInterval);   
   
+  checkForUpdates();
+}
+
+void checkForUpdates(){
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval && WiFiMulti.run() == WL_CONNECTED) {
     Serial.println("Time elapsed");
@@ -98,7 +85,7 @@ void loop() {
         // file found at server
         if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
           latestBinary = http.getString();
-          Serial.println("Latest binary:");
+          Serial.print("Latest binary: ");
           Serial.println(latestBinary);
         }
       } else {
@@ -107,6 +94,7 @@ void loop() {
     } else {
       Serial.printf("[HTTP} Unable to connect");
     }
+    http.end();
     
     if (currentBinary != latestBinary) {
       Serial.println("Proceed to update to latest binary");
@@ -130,5 +118,33 @@ void loop() {
     }
     
     previousMillis = millis();
+  }
+}
+
+
+const char *page = 
+  "<h1>You are connected to robot001</h1>"
+  "<form method='post' enctype='application/x-www-form-urlencoded' action='postform/'>"
+    "<input type='text' name='SSID' >"
+    "<input type='text' name='Key' >"
+    "<input type='submit' value='Submit'>"
+  "</form>";
+
+// http://192.168.4.1 
+void handleRoot() {
+  server.send(200, "text/html", page);
+}
+
+void handleForm() {
+  if (server.method() != HTTP_POST) {
+    server.send(405, "text/plain", "Method Not Allowed");
+  } else {
+    WiFi.disconnect();
+    server.arg(0).toCharArray(accessPointSSID, 30);
+    server.arg(1).toCharArray(accessPointKey, 30);
+    WiFiMulti.addAP(accessPointSSID, accessPointKey);
+
+    String message = "Connected!";
+    server.send(200, "text/plain", message);
   }
 }

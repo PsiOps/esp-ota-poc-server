@@ -36,8 +36,8 @@ app.post('/compile/:robotId', (req,res) => {
     fs.writeFile(path, sketch, function(err) {
         if(err) {return console.log(err);}
         console.log("The file was saved!");
-        // arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 /builds/${robotId}/Sketch.ino`
-        const compile = spawn( '/home/ubuntu/bin/arduino-cli', [ 'compile', '--fqbn', 'esp8266:esp8266:nodemcuv2', path ] );
+        // arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 --build-properties LwIPVariant=v2mss536 /builds/robot001/sketch.ino
+        const compile = spawn( '/home/ubuntu/bin/arduino-cli', [ 'compile', '--fqbn', 'esp8266:esp8266:nodemcuv2', '--build-properties', 'LwIPVariant=v2mss536', path ] );
         compile.stdout.on( 'data', data => {
             console.log( `stdout: ${data}` );
         } );
