@@ -31,7 +31,7 @@ app.post('/compile/:robotId', (req,res) => {
     var sketch = req.body.sketch;
     var fileName = req.body.fileName;
     var dir  = `/builds/${robotId}`;
-    var path = `${dir}/Sketch.ino`;
+    var path = `${dir}/sketch.ino`;
     !fs.existsSync(dir) && fs.mkdirSync(dir);
     fs.writeFile(path, sketch, function(err) {
         if(err) {return console.log(err);}
@@ -53,7 +53,7 @@ app.post('/compile/:robotId', (req,res) => {
                 res.json({message: "Compilation failed"});
                 return;
             }
-            const localFileName = `/builds/${robotId}/Sketch.ino.esp8266.esp8266.nodemcuv2.bin`;
+            const localFileName = `/builds/${robotId}/sketch.ino.esp8266.esp8266.nodemcuv2.bin`;
             const fileContent = fs.readFileSync(localFileName);
             const params = {
                 Bucket: bucketName,
@@ -64,12 +64,13 @@ app.post('/compile/:robotId', (req,res) => {
             s3.upload(params, function(err, data) {
                 if (err) { throw err; }
                 console.log(`Binary file uploaded successfully. ${data.Location}`);
-                const latestFileContent = new Buffer(fileName);
+                const latestFileContent = Buffer.from(fileName);
                 const latestParams  = {
                     Bucket: bucketName,
                     Key: `binaries/${robotId}/latest.txt`,
                     Body: latestFileContent,
-                    ACL: 'public-read'    
+                    ACL: 'public-read',
+                    ContentType: 'text'
                 }
                 s3.upload(latestParams, function(latestErr, latestData){
                     if (latestErr) { throw latestErr; }
