@@ -18,6 +18,7 @@
   "homepage": "https://github.com/PsiOps/esp-ota-poc-server#readme",
   "dependencies": {
     "aws-sdk": "^2.570.0",
-    "body-parser": "^1.19.0"
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5"
   }
 }

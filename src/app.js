@@ -9,11 +9,13 @@ const s3 = new AWS.S3({
     secretAccessKey: sk
 });
 var express = require("express");
+var cors = require('cors');
 var bodyParser = require("body-parser");
 var app = express();
 //Here we are configuring express to use body-parser as middle-ware.
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(cors());
 
 const bucketName = "esp-ota-binaries";
 

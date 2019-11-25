@@ -10,9 +10,8 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Setting up");
 
-  pinMode(LED_BUILTIN, OUTPUT);
-
   Ota.setupOta();
+  pinMode(LED_BUILTIN, OUTPUT);
   
   Serial.println("Finished setting up");
 }
