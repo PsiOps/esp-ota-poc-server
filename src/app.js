@@ -77,7 +77,7 @@ app.post('/compile/:robotId', (req,res) => {
                 s3.upload(latestParams, function(latestErr, latestData){
                     if (latestErr) { throw latestErr; }
                     console.log(`Latest txt file uploaded successfully. ${latestData.Location}`);
-                    res.json({message: `Binary saved to ${latestData.Location}`});
+                    res.json({message: `Binary saved to ${data.Location}`});
                 });
             });
         });
