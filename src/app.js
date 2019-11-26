@@ -17,6 +17,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
+var decomment = require('decomment');
+
 const bucketName = "esp-ota-binaries";
 
 app.listen(80, () => {
@@ -30,8 +32,13 @@ app.get("/test", (req, res, next) => {
 app.post('/compile/:robotId', (req,res) => {
     var robotId = req.params.robotId;
     console.log(`Compiling for robot with id ${robotId}`);
-    var sketch = req.body.sketch;
+
     var fileName = req.body.fileName;
+    var sketch = `#include \"src/EspOtaPoc.h\"\nEspOtaPoc Ota(\"${robotId}\", \"${fileName}\");\n` + decomment(req.body.sketch);
+
+    sketch = sketch.replace("/void\s*setup\s*\(\)[\n\r\s]*{/g", "void setup(){ Ota.setupOta();");
+    sketch = sketch.replace("/void\s*loop\s*\(\)[\n\r\s]*{/g", "void loop(){ Ota.handleLoop();");
+    console.log(sketch);
     var dir  = `/builds/${robotId}`;
     var path = `${dir}/sketch.ino`;
     !fs.existsSync(dir) && fs.mkdirSync(dir);
