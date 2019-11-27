@@ -34,11 +34,14 @@ app.post('/compile/:robotId', (req,res) => {
     console.log(`Compiling for robot with id ${robotId}`);
 
     var fileName = req.body.fileName;
-    var sketch = `#include \"src/EspOtaPoc.h\"\nEspOtaPoc Ota(\"${robotId}\", \"${fileName}\");\n` + decomment(req.body.sketch);
+    var sketch = req.body.sketch;
 
-    sketch = sketch.replace("/void\s*setup\s*\(\)[\n\r\s]*{/g", "void setup(){ Ota.setupOta();");
-    sketch = sketch.replace("/void\s*loop\s*\(\)[\n\r\s]*{/g", "void loop(){ Ota.handleLoop();");
+    sketch = `#include "src/EspOtaPoc.h" \nEspOtaPoc Ota("${robotId}", "${fileName}");\n` + sketch;
+    sketch = decomment.text(sketch);
+    sketch = sketch.replace(/void\s*setup\s*\(\)[\n\r\s]*{/g, "void setup(){ Ota.setupOta();");
+    sketch = sketch.replace(/void\s*loop\s*\(\)[\n\r\s]*{/g, "void loop(){ Ota.handleLoop();");
     console.log(sketch);
+
     var dir  = `/builds/${robotId}`;
     var path = `${dir}/sketch.ino`;
     !fs.existsSync(dir) && fs.mkdirSync(dir);

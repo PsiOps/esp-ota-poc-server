@@ -2,7 +2,7 @@
   "name": "esp-ota-poc-server",
   "version": "1.0.0",
   "description": "Install Compilation stuff - Install AWS CLI (not needed for Lambda) - Install arduino CLI \t`curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh` - Add path to PATH: https://askubuntu.com/a/170240/545615 - Create a arduino-cli.yaml config file \t`arduino-cli config init` => /home/ubuntu/.arduino15/arduino-cli.yaml - Install additional boards: \tediting the yaml: `sudo nano /home/ubuntu/.arduino15/arduino-cli.yaml` ``` board_manager:   additional_urls:     - http://arduino.esp8266.com/stable/package_esp8266com_index.json ``` \tupdate the index: `arduino-cli core update-index` \tthen install the platform: `arduino-cli core install esp8266:esp8266`",
-  "main": "src/app.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,6 +20,7 @@
     "aws-sdk": "^2.570.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
-    "decomment": "^0.9.2"
+    "decomment": "^0.9.2",
+    "express": "^4.17.1"
   }
 }
