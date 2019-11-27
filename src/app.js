@@ -33,7 +33,7 @@ app.post('/compile/:robotId', (req,res) => {
     var robotId = req.params.robotId;
     console.log(`Compiling for robot with id ${robotId}`);
 
-    var fileName = req.body.fileName;
+    var fileName = `${robotId}-${new Date().getTime()}`;
     var sketch = req.body.sketch;
 
     sketch = `#include "src/EspOtaPoc.h" \nEspOtaPoc Ota("${robotId}", "${fileName}");\n` + sketch;
